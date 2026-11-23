@@ -1,0 +1,14 @@
+{
+  "name": "arranque-dual",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ubuntu junto a Windows: guía de arranque dual paso a paso, para seguir desde el móvil.",
+  "scripts": {
+    "test": "node test/guia.test.mjs",
+    "build": "node scripts/build.mjs",
+    "dev": "npm run build && node scripts/dev.mjs",
+    "deploy": "npm run build && npx --yes wrangler@4.151.2 deploy"
+  },
+  "engines": { "node": ">=22" }
+}

@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Ubuntu junto a Windows · Guía de arranque dual paso a paso</title>
+    <meta name="description" content="Guía para instalar Ubuntu 26.04 LTS junto a Windows sin perderlo: descargas oficiales, preparar Windows, crear el USB, instalar, primer arranque y cómo deshacerlo. Se sigue desde el móvil y guarda tu progreso.">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#ecede8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16181a" media="(prefers-color-scheme: dark)">
+    <meta property="og:title" content="Ubuntu junto a Windows">
+    <meta property="og:description" content="Instalar Ubuntu sin quitar Windows, largo a largo, con las reuniones donde puedes parar y el descenso para deshacerlo.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.pedrogomez.dev/proyecto/arranque-dual/">
+    <link rel="icon" href="{{BASE}}/favicon.svg" type="image/svg+xml">
+    <link rel="preload" href="{{BASE}}/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{BASE}}/guia.css?v={{v:guia.css}}">
+    <script type="module" src="{{BASE}}/guia.js?v={{v:guia.js}}"></script>
+</head>
+<body>
+    <a class="saltar" href="#largo-1">Saltar al primer largo</a>
+
+    <header class="cabecera">
+        <div class="cabeza-run">
+            <span>Guía de arranque dual</span>
+            <span id="donde" aria-live="polite">8 largos y un descenso</span>
+        </div>
+        <h1>Ubuntu junto a Windows</h1>
+        <p class="entrada">Instalar Ubuntu sin quitar Windows, como una vía de escalada: ocho largos, reuniones donde puedes parar sin riesgo, un punto sin vuelta atrás fácil y el descenso dibujado desde el principio. Marca cada paso; el progreso se guarda en este dispositivo.</p>
+        <p class="retomar" id="retomar" hidden></p>
+        <div class="via-leyenda en-cabecera" aria-hidden="true">
+            <span><i class="l-hecho"></i>Hecho</span><span><i class="l-pendiente"></i>Pendiente</span><span><i class="l-reunion"></i>Reunión</span><span><i class="l-sin"></i>Sin vuelta</span><span><i class="l-desc"></i>Descenso</span>
+        </div>
+    </header>
+
+    <nav class="via" aria-label="La vía: largos de la instalación">
+        <ol class="via-lista">
+            <li class="via-tramo" data-largo="1"><a href="#largo-1"><b>1</b><span>Descargar</span></a></li>
+            <li class="via-tramo" data-largo="2" data-reunion><a href="#largo-2"><b>2</b><span>Preparar Windows</span></a></li>
+            <li class="via-tramo" data-largo="3"><a href="#largo-3"><b>3</b><span>Crear el USB</span></a></li>
+            <li class="via-tramo" data-largo="4" data-reunion><a href="#largo-4"><b>4</b><span>Arrancar del USB</span></a></li>
+            <li class="via-tramo" data-largo="5" data-sin-vuelta><a href="#largo-5"><b>5</b><span>Instalar</span></a></li>
+            <li class="via-tramo" data-largo="6" data-reunion><a href="#largo-6"><b>6</b><span>Primer arranque</span></a></li>
+            <li class="via-tramo" data-largo="7"><a href="#largo-7"><b>7</b><span>Herramientas</span></a></li>
+            <li class="via-tramo" data-largo="8"><a href="#largo-8"><b>8</b><span>Qué arranca</span></a></li>
+            <li class="via-tramo descenso" data-largo="d"><a href="#descenso"><b>D</b><span>Descenso</span></a></li>
+        </ol>
+        <div class="estado">
+            <a id="siguiente" href="#largo-1">Empieza por el largo 1</a>
+            <button type="button" class="vela" id="vela" hidden aria-pressed="false">Pantalla encendida</button>
+        </div>
+        <div class="via-leyenda en-via" aria-hidden="true">
+            <span><i class="l-hecho"></i>Hecho</span><span><i class="l-pendiente"></i>Pendiente</span><span><i class="l-reunion"></i>Reunión</span><span><i class="l-sin"></i>Sin vuelta</span><span><i class="l-desc"></i>Descenso</span>
+        </div>
+    </nav>
+
+    <main class="columna">
+
+        <section class="aproximacion" id="aproximacion" aria-labelledby="t-aprox">
+            <h2 id="t-aprox">¿Te hace falta el arranque dual?</h2>
+            <p>Hay dos maneras de tener Ubuntu en un PC con Windows. Elige antes de particionar nada.</p>
+            <dl class="comparar">
+                <dt>WSL2: Ubuntu dentro de Windows</dt>
+                <dd>Una orden en Windows (<code>wsl --install -d Ubuntu</code>) y tienes una terminal de Ubuntu real, sin tocar el disco ni reiniciar. Sirve para casi todo el desarrollo: Node, Python, Git, Java, Docker (Docker Desktop ya funciona sobre WSL2) y los agentes de IA por terminal. Lo que pierdes: no es un escritorio Linux, el acceso a los archivos de Windows desde Linux es lento y la gráfica pasa por Windows.</dd>
+                <dt>Arranque dual: Ubuntu de verdad, al lado</dt>
+                <dd>Al encender eliges Windows o Ubuntu. Ubuntu usa todo el hardware sin capas, el disco va a velocidad nativa y aprendes Linux como se usa en un servidor. Lo que pierdes: para cambiar de sistema hay que reiniciar, y en Ubuntu no están los programas que solo existen para Windows (Office de escritorio, Adobe, juegos con antitrampas) ni las que dependen de piezas de Windows, como la Papelera o el registro.</dd>
+            </dl>
+            <p>Si solo quieres programar en Linux, prueba antes WSL2. Si quieres vivir en Linux, sigue la vía.</p>
+
+            <h3>Qué necesitas</h3>
+            <ul class="material">
+                <li>Un PC con Windows 10 u 11 que arranque en modo UEFI (casi todos desde 2013; lo compruebas en el <a href="#largo-2">largo 2</a>).</li>
+                <li>Al menos 100 GB libres en <code>C:</code>: 60 para que Windows siga actualizándose y 40 para Ubuntu (pide 25 como mínimo; con herramientas de desarrollo, mejor 80 o más). En discos grandes, algo más: la <a href="#paso-2-5">calculadora del largo 2</a> te dice cuánto.</li>
+                <li>Un USB de 8 GB o más que se pueda borrar entero.</li>
+                <li>Un disco externo o una nube para la copia de seguridad.</li>
+                <li>Unas dos horas, conexión a internet y este móvil cargado: durante la instalación el PC no puede mostrarte la guía.</li>
+            </ul>
+        </section>
+
+        <!-- Largo 1 -->
+        <section class="largo" id="largo-1" data-largo="1" aria-labelledby="t-1">
+            <h2 id="t-1" data-n="1"><span class="vh">Largo 1: </span>Descargar</h2>
+            <p class="grado">En Windows · Sin riesgo</p>
+            <p class="intro">Todo sale de las páginas oficiales. La imagen de Ubuntu pesa unos 6 GB: no hay copias en esta web.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-1-1" data-paso="1-1">
+                    <input type="checkbox" id="c1-1" class="marca"><label for="c1-1">Descarga Ubuntu 26.04.1 LTS</label>
+                    <div class="cuerpo">
+                        <p>En <a href="https://ubuntu.com/download/desktop" rel="noopener">ubuntu.com/download/desktop</a>, la versión para Intel o AMD de 64 bits. Es un archivo <code>.iso</code> de unos 6 GB.</p>
+                        <p class="nota"><b>Por qué LTS</b> La página también ofrece la 26.10. Elige la LTS (soporte de larga duración): recibe actualizaciones cinco años; las otras, nueve meses.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-1-2" data-paso="1-2">
+                    <input type="checkbox" id="c1-2" class="marca"><label for="c1-2">Comprueba que la descarga está entera</label>
+                    <div class="cuerpo">
+                        <p>Opcional, pero ahorra disgustos. En Windows abre PowerShell y calcula la huella del archivo:</p>
+                        <pre><code>Get-FileHash $HOME\Downloads\ubuntu-26.04.1-desktop-amd64.iso</code></pre>
+                        <p class="nota"><b>Deberías ver</b> Una cadena larga (Windows la escribe en mayúsculas; da igual) que coincide con la línea de ese archivo en <a href="https://releases.ubuntu.com/26.04/SHA256SUMS" rel="noopener">SHA256SUMS</a>. Si no coincide, descárgalo otra vez.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-1-3" data-paso="1-3">
+                    <input type="checkbox" id="c1-3" class="marca"><label for="c1-3">Descarga Rufus o balenaEtcher</label>
+                    <div class="cuerpo">
+                        <p><a href="https://rufus.ie/es/" rel="noopener">Rufus</a> (solo Windows, la 4.16 es de noviembre de 2026; la versión portable no se instala) o <a href="https://etcher.balena.io/" rel="noopener">balenaEtcher</a> (más sencillo, menos opciones). Los dos graban la imagen en el USB; la guía sigue con Rufus.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-1-4" data-paso="1-4">
+                    <input type="checkbox" id="c1-4" class="marca"><label for="c1-4">Ten a mano un USB de 8 GB o más</label>
+                    <div class="cuerpo">
+                        <p>Se va a borrar entero. Saca antes lo que tenga.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Largo 2 -->
+        <section class="largo" id="largo-2" data-largo="2" aria-labelledby="t-2">
+            <h2 id="t-2" data-n="2"><span class="vh">Largo 2: </span>Preparar Windows</h2>
+            <p class="grado">En Windows · Reversible</p>
+            <p class="intro">Antes de tocar el disco: una copia, comprobar cómo arranca el PC y apagar lo que impide convivir a dos sistemas. Al final, dejar un hueco libre para Ubuntu.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-2-1" data-paso="2-1">
+                    <input type="checkbox" id="c2-1" class="marca"><label for="c2-1">Haz una copia de seguridad</label>
+                    <div class="cuerpo">
+                        <p>De lo que no quieras perder, en un disco externo o en la nube. Reducir una partición es una operación segura casi siempre; la copia es para el casi.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-2-2" data-paso="2-2">
+                    <input type="checkbox" id="c2-2" class="marca"><label for="c2-2">Comprueba que el PC arranca en UEFI y el disco es GPT</label>
+                    <div class="cuerpo">
+                        <p>Pulsa <kbd>Win</kbd> + <kbd>R</kbd>, escribe <code>msinfo32</code> y busca «Modo de BIOS». Luego, en Administración de discos (<kbd>Win</kbd> + <kbd>X</kbd>), clic derecho en «Disco 0», Propiedades, pestaña Volúmenes.</p>
+                        <p class="nota"><b>Deberías ver</b> «Modo de BIOS: UEFI» y «Estilo de partición: Tabla de particiones GUID (GPT)».</p>
+                        <p class="nota"><b>Si no</b> Si pone «Heredado» o MBR, para aquí: esta guía da por hecho UEFI y convertir el disco es otra vía.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-2-3" data-paso="2-3">
+                    <input type="checkbox" id="c2-3" class="marca"><label for="c2-3">Mira si BitLocker está activo y guarda la clave</label>
+                    <div class="cuerpo">
+                        <p>En Configuración, Privacidad y seguridad, Cifrado del dispositivo; o en el Panel de control, Cifrado de unidad BitLocker. Si está activado, guarda la clave de recuperación (está en <a href="https://aka.ms/myrecoverykey" rel="noopener">aka.ms/myrecoverykey</a> si usas cuenta Microsoft) y desactívalo; tarda un rato.</p>
+                        <p class="nota"><b>Por qué</b> Con el disco cifrado, el instalador de Ubuntu no puede leerlo ni instalarse a su lado. Y al cambiar el gestor de arranque, Windows puede pedirte la clave una vez. Lo explica la <a href="https://documentation.ubuntu.com/desktop/en/latest/how-to/turn-off-bitlocker-in-windows/" rel="noopener">documentación de Ubuntu</a>. Puedes volver a activarlo al terminar; si el menú de Ubuntu arranca primero, Windows puede pedirte la clave alguna vez más, así que tenla a mano.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-2-4" data-paso="2-4">
+                    <input type="checkbox" id="c2-4" class="marca"><label for="c2-4">Desactiva el inicio rápido</label>
+                    <div class="cuerpo">
+                        <p>Panel de control, Opciones de energía, «Elegir el comportamiento de los botones de inicio/apagado», «Cambiar la configuración actualmente no disponible» y quita «Activar inicio rápido». O de una vez, en Terminal (Administrador):</p>
+                        <pre><code>powercfg /h off</code></pre>
+                        <p class="nota"><b>Por qué</b> Con el inicio rápido, Windows no se apaga del todo: deja el disco hibernado. Ubuntu lo ve en uso y lo abre solo para leer, o peor. La orden también apaga la hibernación, que libera unos GB y ayuda en el paso siguiente.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-2-5" data-paso="2-5">
+                    <input type="checkbox" id="c2-5" class="marca"><label for="c2-5">Calcula cuánto espacio dar a Ubuntu</label>
+                    <div class="cuerpo">
+                        <p>Mira en el Explorador, Este equipo, cuánto ocupa y cuánto libre tiene <code>C:</code>. Escríbelo aquí:</p>
+                        <form class="calculo" id="calculo">
+                            <label>Tamaño de C: <span><input type="number" inputmode="decimal" min="30" max="20000" step="1" name="total" id="total" required> GB</span></label>
+                            <label>Libre en C: <span><input type="number" inputmode="decimal" min="0" max="20000" step="1" name="libre" id="libre" required> GB</span></label>
+                            <output for="total libre" id="resultado" aria-live="polite">Escribe los dos números y te digo cuántos MB poner en Windows.</output>
+                        </form>
+                        <p class="nota"><b>La regla</b> A Windows le dejamos libre lo que sea mayor: 60 GB o el 15 % de C:, porque se actualiza y crece. El resto, hasta 200 GB, para Ubuntu. Con menos de 40 GB para Ubuntu no compensa: libera espacio, usa otro disco o quédate con WSL2.</p>
+                        <noscript><p class="nota"><b>Sin JavaScript</b> Para Ubuntu, el libre de C: menos 60 GB (o menos el 15 % de C:, si es más), sin pasar de 200 GB. Windows lo pide en MB: multiplica los GB por 1024.</p></noscript>
+                    </div>
+                </li>
+                <li class="paso" id="paso-2-6" data-paso="2-6">
+                    <input type="checkbox" id="c2-6" class="marca"><label for="c2-6">Reduce el volumen C:</label>
+                    <div class="cuerpo">
+                        <p><kbd>Win</kbd> + <kbd>X</kbd>, Administración de discos. Clic derecho en <code>C:</code>, «Reducir volumen». En «Tamaño del espacio que desea reducir, en MB» escribe el número del paso anterior y pulsa Reducir.</p>
+                        <p class="nota"><b>Deberías ver</b> Un bloque nuevo con la barra negra, «No asignado», del tamaño que pediste. Déjalo así: sin formato y sin crear volumen. Ubuntu lo ocupará.</p>
+                        <p class="nota"><b>Si no</b> Si Windows ofrece menos de lo que pides, es por archivos que no puede mover (paginación, hibernación, puntos de restauración). Con <code>powercfg /h off</code> y el Liberador de espacio en disco suele subir; si no, acepta lo que ofrezca.</p>
+                    </div>
+                </li>
+            </ol>
+            <aside class="reunion" aria-label="Reunión del largo 2">
+                <b>Reunión · Puedes parar aquí</b>
+                <p>Nada de lo hecho cambia cómo arranca el PC. Para deshacerlo: clic derecho en <code>C:</code>, «Extender volumen», y vuelve a activar el inicio rápido y BitLocker si quieres.</p>
+            </aside>
+        </section>
+
+        <!-- Largo 3 -->
+        <section class="largo" id="largo-3" data-largo="3" aria-labelledby="t-3">
+            <h2 id="t-3" data-n="3"><span class="vh">Largo 3: </span>Crear el USB de instalación</h2>
+            <p class="grado">En Windows · Borra el USB</p>
+            <p class="intro">Rufus copia la imagen de Ubuntu en el USB de forma que el PC pueda arrancar desde él.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-3-1" data-paso="3-1">
+                    <input type="checkbox" id="c3-1" class="marca"><label for="c3-1">Abre Rufus y elige el USB</label>
+                    <div class="cuerpo">
+                        <p>En «Dispositivo», el USB. Fíjate en el nombre y en el tamaño: si tienes un disco externo enchufado, desenchúfalo para no confundirte.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-3-2" data-paso="3-2">
+                    <input type="checkbox" id="c3-2" class="marca"><label for="c3-2">Elige la imagen y el modo de arranque</label>
+                    <div class="cuerpo">
+                        <p>«Elección de arranque»: SELECCIONAR y la <code>.iso</code> de Ubuntu. «Esquema de partición»: GPT. «Sistema de destino»: UEFI (no CSM). El resto, como está.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-3-3" data-paso="3-3">
+                    <input type="checkbox" id="c3-3" class="marca"><label for="c3-3">Graba</label>
+                    <div class="cuerpo">
+                        <p>EMPEZAR. Si pregunta el modo, «Escribir en modo Imagen ISO (Recomendado)». Avisará de que borra el USB: acepta. Tarda entre 5 y 15 minutos.</p>
+                        <p class="nota"><b>Deberías ver</b> La barra en verde con «PREPARADO». Con balenaEtcher: «Flash from file», «Select target», «Flash!» y «Flash Complete!».</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Largo 4 -->
+        <section class="largo" id="largo-4" data-largo="4" aria-labelledby="t-4">
+            <h2 id="t-4" data-n="4"><span class="vh">Largo 4: </span>Arrancar desde el USB</h2>
+            <p class="grado">En el firmware · No toca el disco</p>
+            <p class="intro">A partir de aquí el PC deja de mostrar Windows: sigue desde el móvil. Ubuntu arranca desde el USB sin instalar nada.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-4-1" data-paso="4-1">
+                    <input type="checkbox" id="c4-1" class="marca"><label for="c4-1">Reinicia hacia el USB desde Windows</label>
+                    <div class="cuerpo">
+                        <p>Con el USB puesto: Configuración, Sistema, Recuperación, «Inicio avanzado», Reiniciar ahora. En la pantalla azul, «Usar un dispositivo» y el USB (suele llamarse «UEFI: nombre del USB»).</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-4-2" data-paso="4-2">
+                    <input type="checkbox" id="c4-2" class="marca"><label for="c4-2">Si no aparece, usa la tecla del menú de arranque</label>
+                    <div class="cuerpo">
+                        <p>Apaga, enciende y pulsa varias veces la tecla nada más encender. Elige la entrada que empieza por «UEFI:».</p>
+                        <table class="teclas">
+                            <caption>Tecla del menú de arranque según el fabricante</caption>
+                            <thead><tr><th scope="col">Fabricante</th><th scope="col">Menú de arranque</th><th scope="col">BIOS</th></tr></thead>
+                            <tbody>
+                                <tr><th scope="row">ASUS</th><td>F8 (sobremesa), Esc (portátil)</td><td>Supr o F2</td></tr>
+                                <tr><th scope="row">Acer</th><td>F12 (a veces hay que activar «F12 Boot Menu» en la BIOS)</td><td>F2</td></tr>
+                                <tr><th scope="row">Dell</th><td>F12</td><td>F2</td></tr>
+                                <tr><th scope="row">HP</th><td>F9 (o Esc y luego F9)</td><td>F10</td></tr>
+                                <tr><th scope="row">Lenovo</th><td>F12 (o el botón Novo)</td><td>F1 o F2</td></tr>
+                                <tr><th scope="row">MSI</th><td>F11</td><td>Supr</td></tr>
+                                <tr><th scope="row">Gigabyte</th><td>F12</td><td>Supr</td></tr>
+                                <tr><th scope="row">ASRock</th><td>F11</td><td>F2 o Supr</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </li>
+                <li class="paso" id="paso-4-3" data-paso="4-3">
+                    <input type="checkbox" id="c4-3" class="marca"><label for="c4-3">Deja Secure Boot como está</label>
+                    <div class="cuerpo">
+                        <p>Ubuntu arranca con Secure Boot activado; no hace falta tocar la BIOS. Solo si el USB no arranca con un error de verificación o firma, desactívalo (suele estar en Boot o Security, «Secure Boot») y vuelve a activarlo al terminar.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-4-4" data-paso="4-4">
+                    <input type="checkbox" id="c4-4" class="marca"><label for="c4-4">Elige «Try or Install Ubuntu»</label>
+                    <div class="cuerpo">
+                        <p>Aparece un menú negro con letras blancas (GRUB, el del USB). Pulsa Intro en la primera opción.</p>
+                        <p class="nota"><b>Deberías ver</b> El logo de Ubuntu y, al cabo de un minuto, el asistente de instalación sobre el escritorio.</p>
+                    </div>
+                </li>
+            </ol>
+            <aside class="reunion" aria-label="Reunión del largo 4">
+                <b>Reunión · Última antes de escribir en el disco</b>
+                <p>Si algo no te convence, apaga y quita el USB: Windows arranca como siempre. Puedes probar Ubuntu desde el USB sin instalar.</p>
+            </aside>
+        </section>
+
+        <!-- Largo 5 -->
+        <section class="largo" id="largo-5" data-largo="5" aria-labelledby="t-5">
+            <h2 id="t-5" data-n="5"><span class="vh">Largo 5: </span>Instalar</h2>
+            <p class="grado">En el instalador · Sin vuelta atrás fácil</p>
+            <p class="intro">El asistente hace preguntas y al final escribe en el disco. Lo importante es el tipo de instalación: Ubuntu va al hueco libre y Windows no se toca.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-5-1" data-paso="5-1">
+                    <input type="checkbox" id="c5-1" class="marca"><label for="c5-1">Idioma, teclado y red</label>
+                    <div class="cuerpo">
+                        <p>Español; teclado «Español» (prueba la ñ en la casilla). Conéctate a internet, por wifi o cable: así baja controladores y actualizaciones durante la instalación.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-5-2" data-paso="5-2">
+                    <input type="checkbox" id="c5-2" class="marca"><label for="c5-2">Instalación interactiva y selección de programas</label>
+                    <div class="cuerpo">
+                        <p>«Instalar Ubuntu», «Instalación interactiva» y «Selección predeterminada»; la ampliada añade LibreOffice y más programas que puedes poner luego.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-5-3" data-paso="5-3">
+                    <input type="checkbox" id="c5-3" class="marca"><label for="c5-3">Marca el software de terceros</label>
+                    <div class="cuerpo">
+                        <p>«Instalar software de terceros para hardware de gráficos y wifi» y, si quieres, el de formatos multimedia. Con una gráfica NVIDIA, es lo que instala su controlador.</p>
+                        <p class="nota"><b>Si pide una contraseña de Secure Boot</b> Inventa una corta y apúntala en el móvil. La pedirá una sola vez, en una pantalla azul al reiniciar (<a href="#largo-6">largo 6</a>).</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-5-4" data-paso="5-4">
+                    <input type="checkbox" id="c5-4" class="marca"><label for="c5-4">Elige «Instalar Ubuntu junto a Windows Boot Manager»</label>
+                    <div class="cuerpo">
+                        <p>Si te deja repartir el espacio, comprueba que usa el hueco libre y no encoge más Windows.</p>
+                        <p class="nota"><b>Si no aparece</b> Elige «Instalación manual». Selecciona la fila «espacio libre», pulsa +, formato ext4, punto de montaje <code>/</code> y todo el tamaño. La partición EFI que ya existe (unos 100 a 300 MB, FAT32) no se toca: el instalador la usa tal cual. En «Dispositivo para el gestor de arranque», el disco de Windows, no el USB.</p>
+                        <p class="cuidado"><b>Cuidado</b> Nunca «Borrar el disco e instalar Ubuntu»: borra Windows. Si el instalador solo ofrece cifrar Ubuntu con esa opción, déjalo sin cifrar.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-5-5" data-paso="5-5">
+                    <input type="checkbox" id="c5-5" class="marca"><label for="c5-5">Usuario y zona horaria</label>
+                    <div class="cuerpo">
+                        <p>Tu nombre, el nombre del equipo, el usuario y una contraseña que recuerdes: la pedirá <code>sudo</code> cada vez que instales algo. Zona horaria: Madrid (o la tuya).</p>
+                    </div>
+                </li>
+                <li class="paso sin-vuelta" id="paso-5-6" data-paso="5-6">
+                    <input type="checkbox" id="c5-6" class="marca"><label for="c5-6">Revisa el resumen y pulsa Instalar</label>
+                    <div class="cuerpo">
+                        <p>El resumen debe nombrar una partición nueva ext4 en el hueco libre. Si menciona borrar o formatear la partición NTFS de Windows, vuelve atrás.</p>
+                        <p class="cuidado"><b>Sin vuelta atrás fácil</b> Al pulsar Instalar se escribe en el disco. Deshacerlo es posible (el descenso), pero ya no es apagar y listo.</p>
+                        <p class="nota"><b>Deberías ver</b> Un pase de diapositivas durante 10 a 20 minutos.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-5-7" data-paso="5-7">
+                    <input type="checkbox" id="c5-7" class="marca"><label for="c5-7">Reinicia y quita el USB</label>
+                    <div class="cuerpo">
+                        <p>«Reiniciar ahora». Cuando lo pida, quita el USB y pulsa Intro.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Largo 6 -->
+        <section class="largo" id="largo-6" data-largo="6" aria-labelledby="t-6">
+            <h2 id="t-6" data-n="6"><span class="vh">Largo 6: </span>Primer arranque</h2>
+            <p class="grado">En Ubuntu · Reversible</p>
+            <p class="intro">Ahora el PC enseña un menú al encender. Comprueba que entran los dos sistemas y deja Ubuntu al día.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-6-1" data-paso="6-1">
+                    <input type="checkbox" id="c6-1" class="marca"><label for="c6-1">Si sale una pantalla azul, inscribe la clave</label>
+                    <div class="cuerpo">
+                        <p>Solo si pusiste contraseña de Secure Boot en el largo 5. En «Perform MOK management»: Enroll MOK, Continue, Yes, la contraseña y Reboot. Tienes unos segundos antes de que siga solo.</p>
+                        <p class="nota"><b>Si se te pasa</b> Ubuntu arranca igual, pero sin el controlador de NVIDIA. Se repite desde «Software y actualizaciones», pestaña «Controladores adicionales».</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-6-2" data-paso="6-2">
+                    <input type="checkbox" id="c6-2" class="marca"><label for="c6-2">Prueba los dos sistemas desde el menú</label>
+                    <div class="cuerpo">
+                        <p>El menú (GRUB) muestra Ubuntu, Opciones avanzadas, Windows Boot Manager y UEFI Firmware Settings. Entra en Windows una vez, comprueba que todo sigue ahí y reinicia hacia Ubuntu.</p>
+                        <p class="nota"><b>Si arranca directo a Windows</b> El orden de arranque de la BIOS pone Windows primero. Entra en la BIOS y sube «ubuntu» al primer puesto (ver <a href="#problemas">«Si algo no sale»</a>).</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-6-3" data-paso="6-3">
+                    <input type="checkbox" id="c6-3" class="marca"><label for="c6-3">Actualiza Ubuntu</label>
+                    <div class="cuerpo">
+                        <p>Abre la Terminal (<kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd>):</p>
+                        <pre><code>sudo apt update &amp;&amp; sudo apt full-upgrade -y</code></pre>
+                        <p class="nota"><b>Truco</b> Desde aquí puedes abrir esta guía en Firefox, en el propio Ubuntu, y copiar las órdenes. Para llevarte el progreso, usa «Pasar el progreso a otro dispositivo» al final de la página.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-6-4" data-paso="6-4">
+                    <input type="checkbox" id="c6-4" class="marca"><label for="c6-4">Arregla la hora de Windows</label>
+                    <div class="cuerpo">
+                        <p>Si al volver a Windows la hora va una o dos horas mal: Windows guarda la hora local en el reloj del PC y Ubuntu, la universal. Que Ubuntu haga como Windows:</p>
+                        <pre><code>timedatectl set-local-rtc 1 --adjust-system-clock</code></pre>
+                        <p class="nota"><b>Deberías ver</b> Un aviso de que no es lo recomendado. En arranque dual es lo normal: ignóralo.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-6-5" data-paso="6-5">
+                    <input type="checkbox" id="c6-5" class="marca"><label for="c6-5">Revisa los controladores</label>
+                    <div class="cuerpo">
+                        <p>«Software y actualizaciones», «Controladores adicionales». Con NVIDIA, debe estar marcado el controlador propietario recomendado (el que dice «tested»).</p>
+                    </div>
+                </li>
+            </ol>
+            <aside class="reunion" aria-label="Reunión del largo 6">
+                <b>Reunión · Ya tienes dos sistemas</b>
+                <p>Lo que queda es instalar tus herramientas y decidir qué arranca por defecto.</p>
+            </aside>
+        </section>
+
+        <!-- Largo 7 -->
+        <section class="largo" id="largo-7" data-largo="7" aria-labelledby="t-7">
+            <h2 id="t-7" data-n="7"><span class="vh">Largo 7: </span>Herramientas de trabajo</h2>
+            <p class="grado">En Ubuntu · Reversible</p>
+            <p class="intro">Lo básico para programar: Git, Python, Node, Claude Code, VS Code y Docker. Cada orden va en la Terminal.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-7-1" data-paso="7-1">
+                    <input type="checkbox" id="c7-1" class="marca"><label for="c7-1">Git y lo necesario para compilar</label>
+                    <div class="cuerpo">
+                        <pre><code>sudo apt install -y git curl build-essential</code></pre>
+                        <pre><code>git config --global user.name "Tu nombre"
+git config --global user.email "tu@correo"</code></pre>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-2" data-paso="7-2">
+                    <input type="checkbox" id="c7-2" class="marca"><label for="c7-2">Python</label>
+                    <div class="cuerpo">
+                        <p>Ubuntu ya trae <code>python3</code>. Añade los entornos virtuales y pipx:</p>
+                        <pre><code>sudo apt install -y python3-venv python3-pip pipx</code></pre>
+                        <p class="nota"><b>Por qué</b> Ubuntu no deja instalar paquetes con <code>pip</code> en el Python del sistema. Usa un entorno por proyecto (<code>python3 -m venv .venv</code>) o <code>pipx</code> para programas sueltos.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-3" data-paso="7-3">
+                    <input type="checkbox" id="c7-3" class="marca"><label for="c7-3">Node con nvm</label>
+                    <div class="cuerpo">
+                        <p>En <a href="https://nodejs.org/es/download" rel="noopener">nodejs.org/es/download</a> elige la versión LTS, Linux y nvm, y copia sus órdenes: así siempre tienes la versión actual. nvm instala Node en tu usuario, sin <code>sudo</code>, y cambia de versión por proyecto.</p>
+                        <p class="nota"><b>Deberías ver</b> Que <code>node -v</code> y <code>npm -v</code> responden en una terminal nueva.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-4" data-paso="7-4">
+                    <input type="checkbox" id="c7-4" class="marca"><label for="c7-4">Claude Code</label>
+                    <div class="cuerpo">
+                        <p>El instalador oficial, que luego se actualiza solo:</p>
+                        <pre><code>curl -fsSL https://claude.ai/install.sh | bash</code></pre>
+                        <p>Abre una terminal nueva, comprueba con <code>claude --version</code> y entra con <code>claude</code>. Más en la <a href="https://code.claude.com/docs/en/setup" rel="noopener">documentación de Claude Code</a>.</p>
+                        <p class="nota"><b>La app de escritorio</b> Claude tiene app para Ubuntu y Debian, en beta: chat, Cowork y Code, sin Computer Use ni dictado por voz (el dictado sí está en la terminal). Se instala desde su repositorio con las órdenes de <a href="https://code.claude.com/docs/en/desktop-linux" rel="noopener">esta página</a>.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-5" data-paso="7-5">
+                    <input type="checkbox" id="c7-5" class="marca"><label for="c7-5">VS Code</label>
+                    <div class="cuerpo">
+                        <pre><code>sudo snap install --classic code</code></pre>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-6" data-paso="7-6">
+                    <input type="checkbox" id="c7-6" class="marca"><label for="c7-6">Docker</label>
+                    <div class="cuerpo">
+                        <p>En Linux, Docker funciona sin máquina virtual. El script oficial vale para un equipo de desarrollo:</p>
+                        <pre><code>curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER</code></pre>
+                        <p>Cierra sesión y vuelve a entrar para usarlo sin <code>sudo</code>; prueba con <code>docker run hello-world</code>. Para un servidor, la <a href="https://docs.docker.com/engine/install/ubuntu/" rel="noopener">instalación por repositorio</a>.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-7-7" data-paso="7-7">
+                    <input type="checkbox" id="c7-7" class="marca"><label for="c7-7">Java, si lo usas</label>
+                    <div class="cuerpo">
+                        <pre><code>sudo apt install -y default-jdk</code></pre>
+                        <p>Instala la versión de Java por defecto de Ubuntu. Para otra en concreto, <code>apt search openjdk</code>; Maven y Gradle también están en <code>apt</code>.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Largo 8 -->
+        <section class="largo" id="largo-8" data-largo="8" aria-labelledby="t-8">
+            <h2 id="t-8" data-n="8"><span class="vh">Largo 8: </span>Elegir qué arranca por defecto</h2>
+            <p class="grado">En Ubuntu · Reversible</p>
+            <p class="intro">Por defecto el menú espera unos segundos y arranca Ubuntu. Puedes cambiarlo.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-8-1" data-paso="8-1">
+                    <input type="checkbox" id="c8-1" class="marca"><label for="c8-1">Edita la configuración del menú</label>
+                    <div class="cuerpo">
+                        <pre><code>sudo nano /etc/default/grub</code></pre>
+                        <p>Cambia o añade las líneas que quieras:</p>
+                        <dl class="opciones">
+                            <dt><code>GRUB_DEFAULT=saved</code> y <code>GRUB_SAVEDEFAULT=true</code></dt>
+                            <dd>Arranca el último que elegiste.</dd>
+                            <dt><code>GRUB_DEFAULT="Windows Boot Manager (on /dev/sda1)"</code></dt>
+                            <dd>Arranca siempre Windows. El final cambia según el disco: copia el nombre exacto de lo que responda <code>grep -o "Windows Boot Manager[^']*" /boot/grub/grub.cfg</code>.</dd>
+                            <dt><code>GRUB_TIMEOUT=5</code> y <code>GRUB_TIMEOUT_STYLE=menu</code></dt>
+                            <dd>Muestra el menú y espera cinco segundos.</dd>
+                        </dl>
+                        <p>Guarda con <kbd>Ctrl</kbd> + <kbd>O</kbd>, Intro, sal con <kbd>Ctrl</kbd> + <kbd>X</kbd> y aplica:</p>
+                        <pre><code>sudo update-grub</code></pre>
+                    </div>
+                </li>
+                <li class="paso" id="paso-8-2" data-paso="8-2">
+                    <input type="checkbox" id="c8-2" class="marca"><label for="c8-2">O decide desde la BIOS</label>
+                    <div class="cuerpo">
+                        <p>En el orden de arranque, «ubuntu» primero muestra el menú; «Windows Boot Manager» primero arranca Windows directamente, y a Ubuntu entras con la tecla del menú de arranque (<a href="#largo-4">largo 4</a>).</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-8-3" data-paso="8-3">
+                    <input type="checkbox" id="c8-3" class="marca"><label for="c8-3">Si Windows no sale en el menú</label>
+                    <div class="cuerpo">
+                        <pre><code>echo 'GRUB_DISABLE_OS_PROBER=false' | sudo tee -a /etc/default/grub
+sudo update-grub</code></pre>
+                        <p class="nota"><b>Deberías ver</b> Que <code>update-grub</code> dice «Found Windows Boot Manager».</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Descenso -->
+        <section class="largo descenso" id="descenso" data-largo="d" aria-labelledby="t-d">
+            <h2 id="t-d" data-n="D"><span class="vh">Descenso: </span>Deshacerlo todo</h2>
+            <p class="grado">Empieza en Ubuntu, sigue en Windows · Borra Ubuntu</p>
+            <p class="intro">Si no usas Ubuntu, se quita y Windows recupera su espacio. El orden importa: primero el arranque, luego las particiones.</p>
+            <ol class="pasos">
+                <li class="paso" id="paso-d-1" data-paso="d-1">
+                    <input type="checkbox" id="cd-1" class="marca"><label for="cd-1">Saca lo que quieras conservar de Ubuntu</label>
+                    <div class="cuerpo">
+                        <p>Ubuntu ve el disco de Windows en Archivos: copia ahí tus proyectos, o a un USB.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-d-2" data-paso="d-2">
+                    <input type="checkbox" id="cd-2" class="marca"><label for="cd-2">Pon Windows primero en el arranque</label>
+                    <div class="cuerpo">
+                        <p>En la BIOS, «Windows Boot Manager» primero. O desde Windows, en Terminal (Administrador):</p>
+                        <pre><code>bcdedit /set "{fwbootmgr}" displayorder "{bootmgr}" /addfirst</code></pre>
+                        <p class="nota"><b>Por qué primero</b> Si borras Ubuntu mientras su menú es lo primero que arranca, el PC se queda en una pantalla <code>grub rescue</code>.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-d-3" data-paso="d-3">
+                    <input type="checkbox" id="cd-3" class="marca"><label for="cd-3">Quita el arranque de Ubuntu de la partición EFI</label>
+                    <div class="cuerpo">
+                        <p>En Terminal (Administrador), una línea cada vez:</p>
+                        <pre><code>mountvol S: /s
+Remove-Item S:\EFI\ubuntu -Recurse -Force
+mountvol S: /d</code></pre>
+                        <p class="nota"><b>Si dice que ya está montada</b> Tu partición EFI ya tiene letra: usa esa en lugar de <code>S:</code>.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-d-4" data-paso="d-4">
+                    <input type="checkbox" id="cd-4" class="marca"><label for="cd-4">Borra las particiones de Ubuntu</label>
+                    <div class="cuerpo">
+                        <p>Administración de discos: clic derecho en la partición de Ubuntu (sin letra, del tamaño que le diste), «Eliminar volumen».</p>
+                        <p class="cuidado"><b>Cuidado</b> No borres la partición EFI (100 a 300 MB) ni la de recuperación. Si dudas, mira el tamaño.</p>
+                    </div>
+                </li>
+                <li class="paso" id="paso-d-5" data-paso="d-5">
+                    <input type="checkbox" id="cd-5" class="marca"><label for="cd-5">Devuelve el espacio a C:</label>
+                    <div class="cuerpo">
+                        <p>Clic derecho en <code>C:</code>, «Extender volumen», todo el espacio. Reinicia.</p>
+                        <p class="nota"><b>Deberías ver</b> Windows arrancando directamente y <code>C:</code> con su tamaño de antes. Si quieres, vuelve a activar el inicio rápido y BitLocker.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section class="problemas" id="problemas" aria-labelledby="t-p">
+            <h2 id="t-p">Si algo no sale</h2>
+            <dl class="averias">
+                <dt>Windows no deja reducir tanto como quiero</dt>
+                <dd>Hay archivos que no puede mover. Apaga la hibernación (<code>powercfg /h off</code>), pasa el Liberador de espacio en disco con «Limpiar archivos del sistema» y reinicia. Si sigue, acepta menos espacio.</dd>
+                <dt>El PC no arranca desde el USB</dt>
+                <dd>Elige la entrada «UEFI:» del menú, prueba otro puerto (los de detrás en un sobremesa) y graba el USB otra vez. Si da un error de firma, desactiva Secure Boot solo para instalar.</dd>
+                <dt>El instalador no ve el disco o habla de RST o VMD</dt>
+                <dd>La BIOS tiene el disco en modo Intel RST o VMD. Cambiarlo a AHCI sin preparar Windows hace que Windows no arranque: busca antes cómo hacerlo en la ayuda de tu fabricante.</dd>
+                <dt>No aparece «junto a Windows»</dt>
+                <dd>Suele ser BitLocker activo, el inicio rápido encendido o que no hay hueco libre. Revisa el <a href="#largo-2">largo 2</a> o usa la instalación manual del <a href="#paso-5-4">paso 5-4</a>.</dd>
+                <dt>Arranca directo a Windows, sin menú</dt>
+                <dd>Entra en la BIOS y pon «ubuntu» primero en el orden de arranque. Una actualización grande de Windows puede volver a cambiarlo.</dd>
+                <dt>Pantalla negra al arrancar Ubuntu con NVIDIA</dt>
+                <dd>En el menú, con Ubuntu marcado, pulsa <kbd>e</kbd>, añade <code>nomodeset</code> al final de la línea que empieza por <code>linux</code> y pulsa <kbd>F10</kbd>. Ya dentro, instala el controlador recomendado (<a href="#paso-6-5">paso 6-5</a>).</dd>
+                <dt>Windows pide la clave de BitLocker</dt>
+                <dd>Es por el cambio de arranque. Escribe la clave que guardaste en el <a href="#paso-2-3">paso 2-3</a>; normalmente no vuelve a pedirla.</dd>
+                <dt>Ubuntu solo puede leer el disco de Windows</dt>
+                <dd>Windows sigue hibernado: desactiva el inicio rápido (<a href="#paso-2-4">paso 2-4</a>) y apágalo del todo.</dd>
+            </dl>
+        </section>
+
+        <section class="cierre" aria-labelledby="t-c">
+            <p class="cima" id="cima" hidden><b>Vía completa</b> Tienes Windows y Ubuntu en el mismo disco, cada uno en su sitio. Si un día no lo usas, el descenso está dibujado arriba.</p>
+            <h2 id="t-c">Tu progreso</h2>
+            <p>Se guarda solo en este navegador, sin cuentas ni cookies. Puedes pasarlo a otro dispositivo con un enlace, o borrarlo.</p>
+            <div class="controles">
+                <button type="button" class="boton" id="pasar">Pasar el progreso a otro dispositivo</button>
+                <button type="button" class="boton secundario" id="borrar">Empezar de cero</button>
+            </div>
+            <p class="aviso" id="aviso" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <footer class="pie">
+        <p>Fuentes oficiales comprobadas el 23 de noviembre de 2026: <a href="https://ubuntu.com/download/desktop" rel="noopener">Ubuntu</a>, <a href="https://releases.ubuntu.com/26.04/" rel="noopener">releases.ubuntu.com</a>, <a href="https://rufus.ie/es/" rel="noopener">Rufus</a>, <a href="https://etcher.balena.io/" rel="noopener">balenaEtcher</a>, <a href="https://documentation.ubuntu.com/desktop/en/latest/how-to/turn-off-bitlocker-in-windows/" rel="noopener">BitLocker y Ubuntu</a>, <a href="https://code.claude.com/docs/en/setup" rel="noopener">Claude Code</a>, <a href="https://code.visualstudio.com/docs/setup/linux" rel="noopener">VS Code</a>, <a href="https://docs.docker.com/engine/install/ubuntu/" rel="noopener">Docker</a> y <a href="https://nodejs.org/es/download" rel="noopener">Node.js</a>. Si sale una versión nueva de Ubuntu 26.04 (26.04.2), cambia el nombre del archivo; los pasos, no.</p>
+        <p>Tipografía: <a href="https://github.com/Omnibus-Type/Archivo" rel="noopener">Archivo</a> (SIL Open Font License). Hecho por <a href="https://www.pedrogomez.dev/">Pedro Gómez</a>.</p>
+    </footer>
+</body>
+</html>

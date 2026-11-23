@@ -1,0 +1,802 @@
+/* Ubuntu junto a Windows. Un croquis de vía: cuatro tintas (roca, grafito, cuerda y gris auxiliar),
+   Archivo estrecha para el aparato del croquis y de ancho normal para leer. El estado lo dice la forma de
+   la línea: continua y gruesa hecho, fina pendiente, discontinua descenso, doble trazo sin vuelta atrás. */
+
+@font-face {
+    font-family: "Archivo";
+    src: url("fonts/archivo.woff2") format("woff2-variations"), url("fonts/archivo.woff2") format("woff2");
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-display: swap;
+}
+
+:root {
+    --roca: #ecede8;
+    --grafito: #17191c;
+    --grafito-2: #464b4f;
+    --cuerda: #e8461e;
+    --aux: #7d8580;
+    --raya: #c9ccc6;
+    --codigo-fondo: #17191c;
+    --codigo-tinta: #ecede8;
+    --sobre-cuerda: #08090a;
+    --estrecha: 72%;
+    --margen-via: 44px;
+    --eje: 19px;
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --roca: #16181a;
+        --grafito: #e7e8e3;
+        --grafito-2: #a9aea9;
+        --cuerda: #ff6b3d;
+        --aux: #6c736e;
+        --raya: #2c3034;
+        --codigo-fondo: #24272b;
+        --codigo-tinta: #e7e8e3;
+    }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+    background: var(--roca);
+    color: var(--grafito);
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 96px;
+}
+
+body {
+    margin: 0;
+    font: 400 1rem/1.6 "Archivo", system-ui, sans-serif;
+    font-stretch: 100%;
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+::selection { background: var(--cuerda); color: var(--sobre-cuerda); }
+
+a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-color: var(--cuerda);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 3px; }
+
+:focus-visible {
+    outline: 3px solid var(--grafito);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+.saltar {
+    position: absolute;
+    left: 12px;
+    top: -60px;
+    z-index: 30;
+    padding: 10px 14px;
+    background: var(--grafito);
+    color: var(--roca);
+    font-weight: 700;
+}
+.saltar:focus { top: 12px; }
+
+/* Aparato del croquis: etiquetas estrechas en versalitas */
+.cabeza-run, .grado, .via, .estado, .boton, caption, .nota b, .cuidado b, .reunion b, .retomar {
+    font-stretch: var(--estrecha);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+/* Cabecera */
+.cabecera {
+    padding: 18px 16px 20px;
+    max-width: 44rem;
+    margin: 0 auto;
+}
+
+.cabeza-run {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--grafito);
+    font-size: .78rem;
+    font-weight: 650;
+}
+
+h1 {
+    margin: 18px 0 14px;
+    font-stretch: 64%;
+    font-weight: 850;
+    font-size: clamp(2.6rem, 12.5vw, 5.75rem);
+    line-height: .9;
+    letter-spacing: -.005em;
+    text-transform: uppercase;
+    text-wrap: balance;
+}
+
+.entrada {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 1.0625rem;
+}
+
+.retomar {
+    position: relative;
+    margin: 16px 0 0;
+    padding-left: 24px;
+    font-size: .9rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+.retomar[hidden] { display: none; }
+/* La banderita doblada donde lo dejaste */
+.retomar::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: 14px;
+    height: 18px;
+    border-left: 2px solid var(--grafito);
+    background: linear-gradient(var(--cuerda), var(--cuerda)) no-repeat 0 0 / 12px 10px;
+}
+.retomar a { display: inline-block; margin-top: 4px; font-size: 1rem; }
+
+/* La vía: en el móvil, una tira fija arriba; en escritorio, el croquis en vertical a la izquierda */
+.via {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--roca);
+    border-bottom: 1px solid var(--grafito);
+    padding: 8px 12px 4px;
+}
+
+.via-lista {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    max-width: 40rem;
+}
+
+.via-tramo {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* El tramo de cuerda que llega a cada reunión: fino si está pendiente, la cuerda lo cubre al avanzar */
+.via-tramo:not(:first-child)::before,
+.via-tramo:not(:first-child)::after {
+    content: "";
+    position: absolute;
+    top: 13px;
+    left: -50%;
+    width: 100%;
+    pointer-events: none;
+}
+.via-tramo::before { border-top: 1px solid var(--aux); }
+.via-tramo::after {
+    height: 3px;
+    margin-top: -1px;
+    background: var(--cuerda);
+    transform: scaleX(var(--avance, 0));
+    transform-origin: left;
+    transition: transform .6s cubic-bezier(.16, 1, .3, 1);
+}
+.via-tramo.descenso::before { border-top: 2px dashed var(--aux); }
+.via-tramo.descenso::after {
+    background: repeating-linear-gradient(90deg, var(--cuerda) 0 6px, transparent 6px 10px);
+}
+
+.via-tramo a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 32px;
+    min-height: 40px;
+    text-decoration: none;
+}
+
+.via-tramo b {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+    border: 2px solid var(--grafito);
+    background: var(--roca);
+    font-size: .8rem;
+    font-weight: 750;
+    transition: background-color .2s, border-color .2s;
+}
+/* Reuniones: doble anillo */
+.via-tramo[data-reunion] b { box-shadow: 0 0 0 2px var(--roca), 0 0 0 4px var(--grafito); }
+/* Sin vuelta atrás: doble trazo cruzando la cuerda antes de la reunión */
+.via-tramo[data-sin-vuelta] a::before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: -3px;
+    width: 6px;
+    height: 18px;
+    background: var(--roca);
+    border-left: 2px solid var(--grafito);
+    border-right: 2px solid var(--grafito);
+}
+.via-tramo.hecho b { background: var(--cuerda); border-color: var(--cuerda); color: var(--sobre-cuerda); }
+.via-tramo.descenso b { border-style: dashed; }
+.via-tramo [aria-current] b,
+.via-tramo a[aria-current] b { outline: 3px solid var(--cuerda); outline-offset: 3px; }
+
+.via-tramo span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.estado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    max-width: 40rem;
+    margin: 2px auto 0;
+    font-size: .74rem;
+    font-weight: 700;
+}
+.estado a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    text-decoration-thickness: 2px;
+}
+.vela {
+    min-height: 32px;
+    padding: 2px 10px;
+    border: 1px solid var(--aux);
+    border-radius: 16px;
+    background: transparent;
+    color: var(--grafito);
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.vela[hidden] { display: none; }
+.vela[aria-pressed="true"] { background: var(--grafito); color: var(--roca); border-color: var(--grafito); }
+
+.via-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px 14px;
+    margin-top: 2px;
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--grafito-2);
+}
+.via-leyenda.en-via { display: none; }
+.via-leyenda.en-cabecera { justify-content: flex-start; margin-top: 18px; }
+.via-leyenda span { display: inline-flex; align-items: center; gap: 5px; }
+.via-leyenda i { display: inline-block; width: 16px; }
+.l-hecho { height: 3px; background: var(--cuerda); }
+.l-pendiente { border-top: 1px solid var(--aux); }
+.l-reunion { width: 10px !important; height: 10px; border-radius: 50%; border: 2px solid var(--grafito); box-shadow: 0 0 0 1px var(--roca), 0 0 0 2.5px var(--grafito); }
+.l-sin { width: 6px !important; height: 11px; border-left: 2px solid var(--grafito); border-right: 2px solid var(--grafito); }
+.l-desc { border-top: 2px dashed var(--aux); }
+
+/* Columna de lectura */
+.columna {
+    padding: 8px 16px 0;
+    max-width: 44rem;
+    margin: 0 auto;
+}
+
+.vh {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* El grado del largo: dónde se hace y cuánto arriesga, como en el croquis */
+.grado {
+    margin: 0 0 12px;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--grafito-2);
+}
+
+h2 {
+    position: relative;
+    margin: 0 0 6px;
+    font-stretch: 78%;
+    font-weight: 760;
+    font-size: clamp(1.95rem, 7.5vw, 2.75rem);
+    line-height: 1.02;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+}
+
+h3 {
+    margin: 28px 0 8px;
+    font-stretch: 85%;
+    font-weight: 720;
+    font-size: 1.3rem;
+    line-height: 1.15;
+}
+
+p, li, dd { max-width: 65ch; text-wrap: pretty; }
+p { margin: 0 0 10px; }
+
+code, kbd, pre { font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace; }
+
+code {
+    font-size: .9em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--grafito) 8%, transparent);
+    overflow-wrap: anywhere;
+}
+
+kbd {
+    display: inline-block;
+    padding: 0 6px;
+    font-size: .85em;
+    line-height: 1.5;
+    border: 1px solid var(--aux);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+}
+
+.aproximacion { padding: 40px 0 8px; }
+
+.comparar dt {
+    margin-top: 18px;
+    font-stretch: 85%;
+    font-weight: 720;
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+.comparar dd { margin: 6px 0 0; }
+
+.material { margin: 0; padding-left: 1.2em; }
+.material li { margin-bottom: 6px; }
+.material li::marker { color: var(--cuerda); }
+
+/* El número del largo, en un círculo sobre la cuerda, a la altura del título */
+.largo > h2::before {
+    content: attr(data-n);
+    position: absolute;
+    left: calc(var(--eje) - var(--margen-via) - 15px);
+    top: .12em;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--grafito);
+    background: var(--roca);
+    font-size: .85rem;
+    font-weight: 800;
+    font-stretch: var(--estrecha);
+    letter-spacing: 0;
+}
+.largo.descenso > h2::before { border-style: dashed; }
+.largo.hecho > h2::before { background: var(--cuerda); border-color: var(--cuerda); color: var(--sobre-cuerda); }
+
+/* Cada largo: la cuerda baja por el margen y las casillas son los seguros por los que pasa */
+.largo, .problemas, .cierre {
+    position: relative;
+    padding-left: var(--margen-via);
+    margin-top: 64px;
+}
+
+.largo::before, .largo::after {
+    content: "";
+    position: absolute;
+    left: var(--eje);
+    top: 6px;
+    bottom: 0;
+    pointer-events: none;
+}
+.largo::before { border-left: 1px solid var(--aux); }
+.largo::after {
+    width: 3px;
+    margin-left: -1px;
+    background: var(--cuerda);
+    transform: scaleY(var(--avance, 0));
+    transform-origin: top;
+    transition: transform .7s cubic-bezier(.16, 1, .3, 1);
+}
+.largo.descenso::before { border-left: 2px dashed var(--aux); }
+.largo.descenso::after { background: repeating-linear-gradient(180deg, var(--cuerda) 0 8px, transparent 8px 13px); }
+
+.intro { font-size: 1.0625rem; }
+
+.pasos {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0;
+}
+
+.paso {
+    position: relative;
+    padding: 16px 0 14px;
+    border-top: 1px solid var(--raya);
+    scroll-margin-top: 96px;
+}
+
+.marca {
+    appearance: none;
+    -webkit-appearance: none;
+    position: absolute;
+    left: calc(var(--eje) - var(--margen-via) - 13px);
+    top: 15px;
+    width: 26px;
+    height: 26px;
+    margin: 0;
+    border: 2px solid var(--grafito);
+    border-radius: 4px;
+    background: var(--roca) no-repeat center / 18px;
+    cursor: pointer;
+    transition: background-color .18s, border-color .18s;
+}
+.marca:checked {
+    background-color: var(--cuerda);
+    border-color: var(--cuerda);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M3.5 9.5l3.5 3.5 7.5-8' fill='none' stroke='%2308090a' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.paso > label {
+    display: block;
+    font-stretch: 92%;
+    font-weight: 680;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    cursor: pointer;
+    text-wrap: pretty;
+}
+.marca:checked + label {
+    color: var(--grafito-2);
+    text-decoration: line-through;
+    text-decoration-color: var(--cuerda);
+    text-decoration-thickness: 2px;
+}
+
+.cuerpo { margin-top: 8px; }
+
+/* Doble trazo: el paso a partir del cual no se vuelve apagando */
+.paso.sin-vuelta::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--eje) - var(--margen-via) - 7px);
+    top: -6px;
+    width: 14px;
+    height: 0;
+    border-top: 2px solid var(--grafito);
+    box-shadow: 0 4px 0 -0px var(--roca), 0 5px 0 0 var(--grafito);
+}
+
+.nota, .cuidado { font-size: .97rem; max-width: 56ch; }
+.nota b, .cuidado b {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: .78rem;
+    font-weight: 750;
+}
+.nota b { color: var(--grafito-2); }
+.cuidado b {
+    padding: 1px 7px;
+    border-radius: 2px;
+    background: var(--cuerda);
+    color: var(--sobre-cuerda);
+}
+
+/* Órdenes: en grafito, partidas para que se lean enteras en el móvil */
+.orden { margin: 10px 0 12px; }
+pre {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 4px;
+    background: var(--codigo-fondo);
+    color: var(--codigo-tinta);
+    font-size: .875rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+.cuerpo > pre { margin: 10px 0 12px; }
+pre code { padding: 0; background: none; font-size: inherit; }
+pre ::selection { background: var(--cuerda); color: var(--sobre-cuerda); }
+
+.copiar {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    margin-top: 4px;
+    padding: 4px 10px 4px 0;
+    border: 0;
+    background: none;
+    color: var(--grafito);
+    font: inherit;
+    font-stretch: var(--estrecha);
+    font-size: .8rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    text-decoration: underline;
+    text-decoration-color: var(--cuerda);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    cursor: pointer;
+}
+
+/* Reunión: un círculo con doble anillo sobre la cuerda */
+.reunion {
+    position: relative;
+    margin-top: 18px;
+    padding: 16px 0 4px;
+    border-top: 1px solid var(--grafito);
+}
+.reunion::before {
+    content: "R";
+    position: absolute;
+    left: calc(var(--eje) - var(--margen-via) - 14px);
+    top: 12px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--grafito);
+    background: var(--roca);
+    box-shadow: 0 0 0 2px var(--roca), 0 0 0 4px var(--grafito);
+    font-stretch: var(--estrecha);
+    font-size: .8rem;
+    font-weight: 800;
+}
+.largo.hecho .reunion::before { background: var(--cuerda); border-color: var(--cuerda); color: var(--sobre-cuerda); }
+.reunion b { display: block; font-size: .85rem; font-weight: 780; margin-bottom: 4px; }
+.reunion p { margin: 0 0 8px; }
+
+/* Calculadora del hueco */
+.calculo {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 14px;
+}
+.calculo label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    max-width: 22rem;
+    font-weight: 600;
+}
+.calculo input {
+    width: 6.5ch;
+    padding: 6px 8px;
+    border: 2px solid var(--grafito);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.2rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.calculo input:user-invalid { border-color: var(--cuerda); border-style: dashed; }
+.calculo output {
+    display: block;
+    padding-top: 10px;
+    border-top: 1px solid var(--raya);
+    font-size: 1.05rem;
+    max-width: 40ch;
+}
+.calculo output strong {
+    font-stretch: 80%;
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* Tabla de teclas */
+.teclas {
+    width: 100%;
+    margin: 10px 0 6px;
+    border-collapse: collapse;
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+}
+caption {
+    text-align: left;
+    font-size: .76rem;
+    font-weight: 700;
+    color: var(--grafito-2);
+    padding-bottom: 6px;
+}
+.teclas th, .teclas td {
+    padding: 7px 8px 7px 0;
+    border-top: 1px solid var(--raya);
+    text-align: left;
+    vertical-align: top;
+}
+.teclas thead th {
+    border-top: 0;
+    border-bottom: 1px solid var(--grafito);
+    font-stretch: var(--estrecha);
+    font-size: .76rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+.teclas tbody th { font-weight: 700; }
+
+.opciones dt { margin-top: 10px; font-weight: 650; }
+.opciones dd { margin: 2px 0 0; }
+
+/* Problemas */
+.averias dt {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid var(--raya);
+    font-stretch: 92%;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1.3;
+}
+.averias dd { margin: 6px 0 0; }
+
+/* Botones */
+.controles { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.boton {
+    min-height: 46px;
+    padding: 10px 16px;
+    border: 2px solid var(--grafito);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--grafito);
+    font: inherit;
+    font-stretch: var(--estrecha);
+    font-size: .9rem;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background-color .18s, color .18s;
+}
+.boton[hidden] { display: none; }
+.boton:hover { background: color-mix(in srgb, var(--grafito) 8%, transparent); }
+.boton[aria-pressed="true"] { background: var(--grafito); color: var(--roca); }
+.boton.secundario { border-color: var(--aux); }
+.boton.armado { border-color: var(--cuerda); border-style: dashed; }
+.aviso { min-height: 1.6em; margin-top: 12px; font-weight: 600; overflow-wrap: anywhere; }
+
+.cierre { padding-bottom: 8px; }
+.cima {
+    margin: 0 0 28px;
+    padding: 14px 0;
+    border-top: 3px solid var(--cuerda);
+    border-bottom: 1px solid var(--grafito);
+    font-size: 1.1rem;
+}
+.cima[hidden] { display: none; }
+.cima b {
+    display: block;
+    font-stretch: 66%;
+    font-weight: 850;
+    font-size: 2rem;
+    line-height: 1;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.pie {
+    max-width: 44rem;
+    margin: 64px auto 0;
+    padding: 20px 16px 40px;
+    border-top: 1px solid var(--grafito);
+    font-size: .88rem;
+    color: var(--grafito-2);
+}
+.pie p { margin-bottom: 10px; }
+
+/* Escritorio: el croquis entero a la izquierda, con nombres, y la columna a la derecha */
+@media (min-width: 1000px) {
+    html { scroll-padding-top: 24px; }
+    body {
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) minmax(0, 44rem);
+        column-gap: clamp(40px, 6vw, 96px);
+        justify-content: center;
+        align-items: start;
+    }
+    .cabecera { grid-column: 2; width: 100%; padding: 32px 0 8px; max-width: none; margin: 0; }
+    .via {
+        grid-column: 1;
+        grid-row: 1 / span 3;
+        top: 24px;
+        margin-top: 40px;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+    .via-lista { flex-direction: column; max-width: none; }
+    .via-tramo { flex: none; justify-content: flex-start; }
+    .via-tramo:not(:first-child)::before,
+    .via-tramo:not(:first-child)::after {
+        top: -50%;
+        left: 12px;
+        width: 0;
+        height: 100%;
+    }
+    .via-tramo::before { border-top: 0; border-left: 1px solid var(--aux); }
+    .via-tramo::after {
+        width: 3px;
+        margin: 0 0 0 -1px;
+        transform: scaleY(var(--avance, 0));
+        transform-origin: top;
+    }
+    .via-tramo.descenso::before { border-top: 0; border-left: 2px dashed var(--aux); }
+    .via-tramo.descenso::after { background: repeating-linear-gradient(180deg, var(--cuerda) 0 6px, transparent 6px 10px); }
+    .via-tramo a {
+        flex-direction: row;
+        gap: 14px;
+        padding: 10px 0;
+        min-height: 52px;
+        align-items: center;
+    }
+    .via-tramo[data-sin-vuelta] a::before {
+        top: -3px;
+        left: 4px;
+        width: 18px;
+        height: 6px;
+        border: 0;
+        border-top: 2px solid var(--grafito);
+        border-bottom: 2px solid var(--grafito);
+    }
+    .via-tramo span {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+        font-size: .92rem;
+        font-weight: 680;
+    }
+    .via-tramo a:hover span { text-decoration: underline; text-decoration-color: var(--cuerda); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+    .via-tramo a[aria-current] span { color: var(--grafito); }
+    .estado { flex-direction: column; align-items: flex-start; margin: 18px 0 0; gap: 8px; }
+    .via-leyenda.en-cabecera { display: none; }
+    .via-leyenda.en-via { display: flex; justify-content: flex-start; flex-direction: column; gap: 6px; margin-top: 22px; font-size: .74rem; }
+    .columna { grid-column: 2; padding: 0; margin: 0; max-width: none; width: 100%; }
+    .pie { grid-column: 2; margin: 64px 0 0; padding: 20px 0 48px; max-width: none; }
+    .paso, .largo { scroll-margin-top: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+}
+
+@media print {
+    .via, .controles, .copiar, .cierre, .saltar { display: none; }
+    .largo::after { transform: none; }
+}
